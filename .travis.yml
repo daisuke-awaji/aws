@@ -34,6 +34,7 @@ script:
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
           --parameter-overrides Environment=${ENV} \
+          --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
 
@@ -50,6 +51,7 @@ script:
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
           --parameter-overrides Environment=${ENV} \
+          --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
 
@@ -74,6 +76,7 @@ script:
           --change-set-name "change-set-${DATE}" \
           --stack-name ${ENV} \
           --parameters ParameterKey=Environment,ParameterValue=${ENV} \
+          --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
 
@@ -93,6 +96,7 @@ script:
           --change-set-name "change-set-${DATE}" \
           --stack-name ${ENV} \
           --parameters ParameterKey=Environment,ParameterValue=${ENV} \
+          --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
 

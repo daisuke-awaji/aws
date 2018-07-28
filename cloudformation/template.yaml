@@ -13,8 +13,14 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - stg
       - prod
+
+Mappings:
+  StackConfig:
+    EC2:
+      ImageId: ami-b70554c8
+    KeyPair:
+      KeyPairName: keypair
 
 Resources:
 
@@ -34,6 +40,18 @@ Resources:
         - Key: Name
           Value: !Ref Environment
 
+  #  ___ _   _ _____ _____ ____  _   _ _____ _____
+  # |_ _| \ | |_   _| ____|  _ \| \ | | ____|_   _|
+  #  | ||  \| | | | |  _| | |_) |  \| |  _|   | |
+  #  | || |\  | | | | |___|  _ <| |\  | |___  | |
+  # |___|_| \_| |_| |_____|_| \_\_| \_|_____| |_|
+  #
+  #   ____    _  _____ _______        ___ __   __
+  #  / ___|  / \|_   _| ____\ \      / / \\ \ / /
+  # | |  _  / _ \ | | |  _|  \ \ /\ / / _ \\ V /
+  # | |_| |/ ___ \| | | |___  \ V  V / ___ \| |
+  #  \____/_/   \_\_| |_____|  \_/\_/_/   \_\_|
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -46,6 +64,12 @@ Resources:
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
+
+  #  ____  _   _ ____  _   _ _____ _____
+  # / ___|| | | | __ )| \ | | ____|_   _|
+  # \___ \| | | |  _ \|  \| |  _|   | |
+  #  ___) | |_| | |_) | |\  | |___  | |
+  # |____/ \___/|____/|_| \_|_____| |_|
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -91,6 +115,12 @@ Resources:
         - Key: Name
           Value: !Sub ${Environment} Private Subnet (AZ2)
 
+  #  _   _    _  _____    ____    _  _____ _______        ___ __   __
+  # | \ | |  / \|_   _|  / ___|  / \|_   _| ____\ \      / / \\ \ / /
+  # |  \| | / _ \ | |   | |  _  / _ \ | | |  _|  \ \ /\ / / _ \\ V /
+  # | |\  |/ ___ \| |   | |_| |/ ___ \| | | |___  \ V  V / ___ \| |
+  # |_| \_/_/   \_\_|    \____/_/   \_\_| |_____|  \_/\_/_/   \_\_|
+
   NatGateway1EIP:
     Type: AWS::EC2::EIP
     DependsOn: InternetGatewayAttachment
@@ -123,6 +153,12 @@ Resources:
         - Key: Name
           Value: !Sub ${Environment} Public Routes
 
+  #  ____   ___  _   _ _____ _____   _____  _    ____  _     _____
+  # |  _ \ / _ \| | | |_   _| ____| |_   _|/ \  | __ )| |   | ____|
+  # | |_) | | | | | | | | | |  _|     | | / _ \ |  _ \| |   |  _|
+  # |  _ <| |_| | |_| | | | | |___    | |/ ___ \| |_) | |___| |___
+  # |_| \_\\___/ \___/  |_| |_____|   |_/_/   \_\____/|_____|_____|
+
   DefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn: InternetGatewayAttachment
@@ -142,7 +178,6 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
-
 
   PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
@@ -199,6 +234,22 @@ Resources:
   #  ___) | |__| |___| |_| |  _ < | |  | |   | |   | |_| |  _ <| |_| | |_| |  __/
   # |____/|_____\____|\___/|_| \_\___| |_|   |_|    \____|_| \_\\___/ \___/|_|
 
+  JumpHostSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: jump-host-security-group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        # IBIS
+        - IpProtocol: "TCP"
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 126.209.222.211/32
+          Description: "SoftbankAir"
+      Tags:
+        - Key: Name
+          Value: jump-host-security-group
+
   PublicSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -239,6 +290,134 @@ Resources:
       ToPort: -1
       SourceSecurityGroupId: !Ref PrivateSecurityGroup
 
+  #      _ _   _ __  __ ____    _   _  ___  ____ _____
+  #     | | | | |  \/  |  _ \  | | | |/ _ \/ ___|_   _|
+  #  _  | | | | | |\/| | |_) | | |_| | | | \___ \ | |
+  # | |_| | |_| | |  | |  __/  |  _  | |_| |___) || |
+  #  \___/ \___/|_|  |_|_|     |_| |_|\___/|____/ |_|
+
+  Ec2InstanceLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        SecurityGroupIds:
+        - !Ref JumpHostSecurityGroup
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Env
+            Value: !Ref Environment
+        - ResourceType: volume
+          Tags:
+          - Key: Env
+            Value: !Ref Environment
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: !Ref 'AWS::StackName'
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash -xe
+            date > /tmp/run.log
+            yum update -y
+            yum install jq awslogs -y
+            chkconfig awslogs on
+            service awslogs start
+            if [ ! -f /swapfile ]; then dd if=/dev/zero of=/swapfile bs=1M count=128; chmod 600 /swapfile; mkswap /swapfile; swapon /swapfile; echo "/swapfile  swap  swap  defaults  0  0" >> /etc/fstab; fi
+        InstanceInitiatedShutdownBehavior: terminate
+        IamInstanceProfile:
+          Arn: !GetAtt 'Ec2IAMProfile.Arn'
+        KeyName: !FindInMap [ StackConfig, KeyPair, KeyPairName ]
+        ImageId: !FindInMap [ StackConfig, EC2, ImageId ]
+        Monitoring:
+          Enabled: false
+        CreditSpecification:
+          CpuCredits: standard
+        InstanceType: t2.micro
+        InstanceMarketOptions:
+          SpotOptions:
+            SpotInstanceType: one-time
+            InstanceInterruptionBehavior: terminate
+          MarketType: spot
+        BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+            VolumeType: gp2
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdf
+          Ebs:
+            VolumeSize: 1
+            VolumeType: gp2
+            DeleteOnTermination: true
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref 'Ec2InstanceLaunchTemplate'
+        Version: !GetAtt 'Ec2InstanceLaunchTemplate.LatestVersionNumber'
+      SubnetId: !Ref PublicSubnet1
+
+  Ec2InstanceAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref 'Ec2InstanceLaunchTemplate'
+        Version: !GetAtt 'Ec2InstanceLaunchTemplate.LatestVersionNumber'
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1
+
+  Ec2IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Path: /
+      Policies: !Ref 'AWS::NoValue'
+      RoleName: !Ref 'AWS::NoValue'
+  Ec2RolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: Ec2RolePolicies
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - s3:List*
+          Resource:
+          - '*'
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          - logs:DescribeLogStreams
+          Resource:
+          - arn:aws:logs:*:*:*
+      Roles:
+      - !Ref 'Ec2IAMRole'
+  Ec2IAMProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: Ec2IAMRole
+    Properties:
+      Path: /
+      Roles:
+      - !Ref 'Ec2IAMRole'
+
   #     _   _   _ _____ ___    ____   ____    _    _     ___ _   _  ____
   #    / \ | | | |_   _/ _ \  / ___| / ___|  / \  | |   |_ _| \ | |/ ___|
   #   / _ \| | | | | || | | | \___ \| |     / _ \ | |    | ||  \| | |  _
@@ -271,11 +450,11 @@ Resources:
   LaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-b70554c8
-      IamInstanceProfile: arn:aws:iam::819517939874:instance-profile/s4-gate-web-ec2-role
+      ImageId: !FindInMap [ StackConfig, EC2, ImageId ]
       SecurityGroups:
         - !Ref PrivateSecurityGroup
       InstanceType: t2.micro
+      KeyName: !FindInMap [ StackConfig, KeyPair, KeyPairName ]
       # AutoScalingGroupにシグナルを送信することでEC2の作成が完了したことを通知する
       UserData:
         "Fn::Base64":
@@ -303,11 +482,11 @@ Resources:
   SpotInstanceLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-b70554c8
-      IamInstanceProfile: arn:aws:iam::819517939874:instance-profile/s4-gate-web-ec2-role
+      ImageId: !FindInMap [ StackConfig, EC2, ImageId ]
       SecurityGroups:
         - !Ref PrivateSecurityGroup
       InstanceType: t2.micro
+      KeyName: !FindInMap [ StackConfig, KeyPair, KeyPairName ]
       SpotPrice: 0.06
 
   SpotInstanceWebServerScaleUpPolicy:
@@ -380,9 +559,9 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
       LoadBalancerArn: !Ref ApplicationLoadBalancer
-      Port: 443
-      Protocol: HTTPS
-      SslPolicy: ELBSecurityPolicy-2016-08
+      Port: 80
+      Protocol: HTTP
+      # SslPolicy: ELBSecurityPolicy-2016-08
       # Certificates:
       #   - CertificateArn: !Ref CertificateArn
   ALBTargetGroup:
@@ -416,9 +595,9 @@ Resources:
   # InternalRecordset:
   #   Type: 'AWS::Route53::RecordSetGroup'
   #   Properties:
-  #     HostedZoneName: "kensetsu-site.com."
+  #     HostedZoneName: "example.com."
   #     RecordSets:
-  #     - Name: !Sub ${Env}.ent.kensetsu-site.com
+  #     - Name: example.com
   #       Type: CNAME
   #       TTL: '300'
   #       ResourceRecords:
