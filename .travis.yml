@@ -17,18 +17,18 @@ before_script:
   - echo TRAVIS_TAG=${TRAVIS_TAG}
   - echo MTB_PR=${MTB_PR}
   - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
-  - echo DEPLOYGATE_MESSAGE=${DEPLOYGATE_MESSAGE}    
+  - echo DEPLOYGATE_MESSAGE=${DEPLOYGATE_MESSAGE}
 
 branches:
   only:
     - master
+    
+  before_install:
+    - pip install awscli
 
-before_install:
-  - pip install awscli
-
-script:
-  - aws cloudformation deploy
-      --template-file=./cloudformation/template.yaml
-      --stack-name ${ENV}
-      --parameter-overrides Environment=${ENV}
-      --region ${AWS_REGION}
+  script:
+    - aws cloudformation deploy
+        --template-file=./cloudformation/template.yaml
+        --stack-name ${ENV}
+        --parameter-overrides Environment=${ENV}
+        --region ${AWS_REGION}
