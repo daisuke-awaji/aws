@@ -3,14 +3,11 @@ python:
   - "3.5"
 cache: pip
 
-env:
-  global:
-    - ENV=dev
-
 before_script:
   - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Master branch marged by feature branch"'
   - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] || echo "PR for master branch"'
   - '[ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Pushed feature branch and not yet create PullRequest"'
+
   - 'DEPLOYGATE_MESSAGE=$(git rev-parse --short HEAD)'
   - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
   - echo TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
@@ -25,8 +22,9 @@ before_install:
 script:
   # Master branch was pushed or marged by feature branches
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      export ENV=dev;
       echo "[INFO] Master branch was pushed or marged by feature branches";
-      echo "[BUILD] Deploy Stack..."
+      echo "[BUILD] Deploy Stack...";
       aws cloudformation deploy
           --template-file=./cloudformation/template.yaml
           --stack-name ${ENV}
@@ -34,10 +32,11 @@ script:
           --region ${AWS_REGION};
     fi
 
-  # Pull Requests was created
+  # Pull Requests was created for feature to master
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      export ENV=dev;
       echo "[INFO] Pull Request was created";
-      echo "[BUILD] Create Stack..."
+      echo "[BUILD] Create Stack...";
       aws cloudformation create-stack
           --template-body file://./cloudformation/template.yaml
           --change-set-name
