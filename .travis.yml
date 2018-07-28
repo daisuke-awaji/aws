@@ -6,7 +6,7 @@ cache: pip
 before_install:
   - pip install awscli
 
-deploy:
+script:
   - aws cloudformation deploy
       --template-file=./cloudformation/template.yaml
       --stack-name dev
