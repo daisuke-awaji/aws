@@ -16,36 +16,11 @@ Parameters:
       - stg
       - prod
 
-  VpcCIDR:
-    Description: Please enter the IP range (CIDR notation) for this VPC
-    Type: String
-    Default: 10.192.0.0/16
-
-  PublicSubnet1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
-    Type: String
-    Default: 10.192.10.0/24
-
-  PublicSubnet2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
-    Type: String
-    Default: 10.192.11.0/24
-
-  PrivateSubnet1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
-    Type: String
-    Default: 10.192.30.0/24
-
-  PrivateSubnet2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
-    Type: String
-    Default: 10.192.31.0/24
-
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: !Ref VpcCIDR
+      CidrBlock: 10.192.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
@@ -70,7 +45,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-      CidrBlock: !Ref PublicSubnet1CIDR
+      CidrBlock: 10.192.10.0/24
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -81,7 +56,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
-      CidrBlock: !Ref PublicSubnet2CIDR
+      CidrBlock: 10.192.11.0/24
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -92,7 +67,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-      CidrBlock: !Ref PrivateSubnet1CIDR
+      CidrBlock: 10.192.30.0/24
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
@@ -103,7 +78,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
-      CidrBlock: !Ref PrivateSubnet2CIDR
+      CidrBlock: 10.192.31.0/24
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name

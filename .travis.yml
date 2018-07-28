@@ -34,7 +34,7 @@ script:
   # Pull Requests was created for feature to master
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      figlet Pull Requess Build;
+      figlet Pull Request Build;
 
       export ENV=dev;
       echo "[INFO] Pull Request was created";
@@ -52,6 +52,7 @@ script:
   # Feature branch was pushed
   - |
     if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      figlet Only Pushed;
       figlet Nothing to do;
       echo "[INFO] Feature branch was pushed";
       echo "[INFO] Nothing to do anything";
