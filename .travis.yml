@@ -45,6 +45,7 @@ script:
           --change-set-name ${DATE} \
           --stack-name ${ENV} \
           --parameters ParameterKey=Environment,ParameterValue=${ENV}
+          --region ${AWS_REGION};          
     fi
 
   # Feature branch was pushed
