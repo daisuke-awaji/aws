@@ -16,7 +16,7 @@ before_script:
 
 before_install:
   - pip install awscli
-  - yum --enablerepo=epel -y install figlet
+  - sudo apt-get install -y figlet
 
 script:
   # Master branch was pushed or marged by feature branches
