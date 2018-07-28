@@ -8,11 +8,10 @@ env:
     - ENV=dev
 
 before_script:
-  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "This is master branch marged by feature branch"'
-  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] || echo "This is PR for master branch"'
-  - '[ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "This is pushed feature branch and not yet create PullRequest"'
+  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Master branch marged by feature branch"'
+  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] || echo "PR for master branch"'
+  - '[ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Pushed feature branch and not yet create PullRequest"'
   - 'DEPLOYGATE_MESSAGE=$(git rev-parse --short HEAD)'
-  - '[ "$MTB_PR" ] && DEPLOYGATE_MESSAGE+=#"$TRAVIS_PULL_REQUEST" || echo "Not append PR number"'
   - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
   - echo TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
   - echo TRAVIS_TAG=${TRAVIS_TAG}
@@ -20,16 +19,14 @@ before_script:
   - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
   - echo DEPLOYGATE_MESSAGE=${DEPLOYGATE_MESSAGE}
 
-branches:
-  only:
-    - master
-
 before_install:
   - pip install awscli
 
 script:
-  # master branch
+  # Master branch was pushed or marged by feature branches
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      echo "[INFO] Master branch was pushed or marged by feature branches";
+      echo "[BUILD] Deploy Stack..."
       aws cloudformation deploy
           --template-file=./cloudformation/template.yaml
           --stack-name ${ENV}
@@ -37,12 +34,20 @@ script:
           --region ${AWS_REGION};
     fi
 
-  # Pull Requests
+  # Pull Requests was created
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      echo "[INFO] Pull Request was created";
+      echo "[BUILD] Create Stack..."
       aws cloudformation create-stack
           --template-body file://./cloudformation/template.yaml
           --change-set-name
           --stack-name ${ENV}
           --parameter-overrides Environment=${ENV}
           --region ${AWS_REGION};
+    fi
+
+  # Feature branch was pushed
+  - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      echo "[INFO] Feature branch was pushed";
+      echo "[INFO] Nothing to do anything";
     fi
