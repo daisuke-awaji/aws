@@ -15,8 +15,8 @@ before_script:
   - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
 
 before_install:
-  - pip install awscli
   - sudo apt-get install -y figlet
+  - pip install awscli
 
 script:
   # Master branch was pushed or marged by feature branches
@@ -53,6 +53,7 @@ script:
 
   # Feature branch was pushed
   - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      figlet Nothing to do
       echo "[INFO] Feature branch was pushed";
       echo "[INFO] Nothing to do anything";
     fi
