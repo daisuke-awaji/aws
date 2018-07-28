@@ -22,13 +22,16 @@ before_script:
 branches:
   only:
     - master
-    
-  before_install:
-    - pip install awscli
 
-  script:
-    - aws cloudformation deploy
+before_install:
+  - pip install awscli
+
+script:
+  # if master branch or not Pull Requests then deploy stack
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && MTB_PR=1; then
+      aws cloudformation deploy
         --template-file=./cloudformation/template.yaml
         --stack-name ${ENV}
         --parameter-overrides Environment=${ENV}
         --region ${AWS_REGION}
+    fi
