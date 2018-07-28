@@ -8,13 +8,11 @@ before_script:
   - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] || echo "PR for master branch"'
   - '[ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Pushed feature branch and not yet create PullRequest"'
 
-  - 'DEPLOYGATE_MESSAGE=$(git rev-parse --short HEAD)'
   - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
   - echo TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
   - echo TRAVIS_TAG=${TRAVIS_TAG}
   - echo MTB_PR=${MTB_PR}
   - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
-  - echo DEPLOYGATE_MESSAGE=${DEPLOYGATE_MESSAGE}
 
 before_install:
   - pip install awscli
@@ -35,16 +33,18 @@ script:
     fi
 
   # Pull Requests was created for feature to master
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  - |
+    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export ENV=dev;
       echo "[INFO] Pull Request was created";
       echo "[BUILD] Create Stack...";
-      aws cloudformation create-stack
-          --template-body file://./cloudformation/template.yaml
-          --change-set-name
-          --stack-name ${ENV}
-          --parameter-overrides Environment=${ENV}
-          --region ${AWS_REGION};
+      DATE=$(date +"%Y%m%d%H%M%S");
+
+      aws cloudformation create-change-set \
+          --template-body file://cloudformation/template.yaml \
+          --change-set-name ${DATE} \
+          --stack-name ${ENV} \
+          --parameters ParameterKey=Environment,ParameterValue=${ENV}
     fi
 
   # Feature branch was pushed
