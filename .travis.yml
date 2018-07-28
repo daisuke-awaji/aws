@@ -7,6 +7,22 @@ env:
   global:
     - ENV=dev
 
+before_script:
+  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] && MTB_PR=1 || echo "This is master or not PR"'
+  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] && MTB_MERGE_MASTER=1 || echo "This is not master or PR"'
+  - 'DEPLOYGATE_MESSAGE=$(git rev-parse --short HEAD)'
+  - '[ "$MTB_PR" ] && DEPLOYGATE_MESSAGE+=#"$TRAVIS_PULL_REQUEST" || echo "Not append PR number"'
+  - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
+  - echo TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
+  - echo TRAVIS_TAG=${TRAVIS_TAG}
+  - echo MTB_PR=${MTB_PR}
+  - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
+  - echo DEPLOYGATE_MESSAGE=${DEPLOYGATE_MESSAGE}    
+
+branches:
+  only:
+    - master
+
 before_install:
   - pip install awscli
 
