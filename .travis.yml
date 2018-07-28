@@ -4,11 +4,7 @@ python:
 cache: pip
 
 before_install:
-  - pip install --user awscli
-  - export PATH=$PATH:$HOME/.local/bin
-  - pwd
-  - ls
-  - cp .aws/config ~/.aws/config
+  - pip install awscli
 
 deploy:
   access_key_id: $AWS_ACCESS_KEY_ID
