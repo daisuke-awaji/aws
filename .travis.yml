@@ -1,0 +1,11 @@
+language: bash
+
+before_install:
+  - pip install --user awscli
+  - export PATH=$PATH:$HOME/.local/bin
+
+script:
+  - aws cloudformation deploy
+        --template-file=./cloudformation/template.yaml
+        --stack-name dev
+        --parameter-overrides Environment=dev
