@@ -17,6 +17,13 @@ Parameters:
       - prod
 
 Resources:
+
+  #  _   _ _____ _______        _____  ____  _  __
+  # | \ | | ____|_   _\ \      / / _ \|  _ \| |/ /
+  # |  \| |  _|   | |  \ \ /\ / / | | | |_) | ' /
+  # | |\  | |___  | |   \ V  V /| |_| |  _ <| . \
+  # |_| \_|_____| |_|    \_/\_/  \___/|_| \_\_|\_\
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -185,6 +192,237 @@ Resources:
       GroupName: "no-ingress-sg"
       GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
+
+  #  ____  _____ ____ _   _ ____  ___ _______   __   ____ ____   ___  _   _ ____
+  # / ___|| ____/ ___| | | |  _ \|_ _|_   _\ \ / /  / ___|  _ \ / _ \| | | |  _ \
+  # \___ \|  _|| |   | | | | |_) || |  | |  \ V /  | |  _| |_) | | | | | | | |_) |
+  #  ___) | |__| |___| |_| |  _ < | |  | |   | |   | |_| |  _ <| |_| | |_| |  __/
+  # |____/|_____\____|\___/|_| \_\___| |_|   |_|    \____|_| \_\\___/ \___/|_|
+
+  PublicSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: public-security-group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        # IBIS
+        - IpProtocol: "TCP"
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 126.209.222.211/32
+          Description: "SoftbankAir"
+      Tags:
+        - Key: Name
+          Value: public-security-group
+
+  PrivateSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: private-security-group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          SourceSecurityGroupId: !Ref PublicSecurityGroup
+      Tags:
+        - Key: Name
+          Value: public-security-group
+  PrivateSecurityGroupIngress:
+    DependsOn: PrivateSecurityGroup
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      # Private間はすべての通信を許可
+      GroupId: !Ref PrivateSecurityGroup
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !Ref PrivateSecurityGroup
+
+  #     _   _   _ _____ ___    ____   ____    _    _     ___ _   _  ____
+  #    / \ | | | |_   _/ _ \  / ___| / ___|  / \  | |   |_ _| \ | |/ ___|
+  #   / _ \| | | | | || | | | \___ \| |     / _ \ | |    | ||  \| | |  _
+  #  / ___ \ |_| | | || |_| |  ___) | |___ / ___ \| |___ | || |\  | |_| |
+  # /_/   \_\___/  |_| \___/  |____/ \____/_/   \_\_____|___|_| \_|\____|
+
+  WebServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT10M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      LaunchConfigurationName: !Ref LaunchConfig
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      Tags:
+        - Key: Name
+          Value: web
+          PropagateAtLaunch: 'true'
+  LaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-b70554c8
+      IamInstanceProfile: arn:aws:iam::819517939874:instance-profile/s4-gate-web-ec2-role
+      SecurityGroups:
+        - !Ref PrivateSecurityGroup
+      InstanceType: t2.micro
+      # AutoScalingGroupにシグナルを送信することでEC2の作成が完了したことを通知する
+      UserData:
+        "Fn::Base64":
+          !Sub |
+            #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WebServerGroup --region ${AWS::Region}
+
+  SpotInstanceWebServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      LaunchConfigurationName: !Ref SpotInstanceLaunchConfig
+      MinSize: 0
+      MaxSize: 5
+      DesiredCapacity: 0
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      Tags:
+        - Key: Name
+          Value: web
+          PropagateAtLaunch: 'true'
+  SpotInstanceLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-b70554c8
+      IamInstanceProfile: arn:aws:iam::819517939874:instance-profile/s4-gate-web-ec2-role
+      SecurityGroups:
+        - !Ref PrivateSecurityGroup
+      InstanceType: t2.micro
+      SpotPrice: 0.06
+
+  SpotInstanceWebServerScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref SpotInstanceWebServerGroup
+      Cooldown: 60
+      ScalingAdjustment: 1
+  SpotInstanceWebServerScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref SpotInstanceWebServerGroup
+      Cooldown: 60
+      ScalingAdjustment: -1
+  SpotInstanceCPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 90% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 90
+      AlarmActions:
+      - !Ref SpotInstanceWebServerScaleUpPolicy
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: !Ref WebServerGroup
+      ComparisonOperator: GreaterThanThreshold
+  SpotInstanceCPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-down if CPU < 70% for 10 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 70
+      AlarmActions:
+      - !Ref SpotInstanceWebServerScaleDownPolicy
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: !Ref WebServerGroup
+      ComparisonOperator: LessThanThreshold
+
+
+  #     _    _     ____
+  #    / \  | |   | __ )
+  #   / _ \ | |   |  _ \
+  #  / ___ \| |___| |_) |
+  # /_/   \_\_____|____/
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: alb
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref PublicSecurityGroup
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      # Certificates:
+      #   - CertificateArn: !Ref CertificateArn
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: target-group
+      VpcId: !Ref VPC
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /health_check
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 300
+        - Key: stickiness.enabled
+          Value: 'false'
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: 86400
+      Tags:
+        - Key: Name
+          Value: alb
+
+  # Route53 (CNAME)
+  # InternalRecordset:
+  #   Type: 'AWS::Route53::RecordSetGroup'
+  #   Properties:
+  #     HostedZoneName: "kensetsu-site.com."
+  #     RecordSets:
+  #     - Name: !Sub ${Env}.ent.kensetsu-site.com
+  #       Type: CNAME
+  #       TTL: '300'
+  #       ResourceRecords:
+  #         - !GetAtt ApplicationLoadBalancer.DNSName
 
 Outputs:
   VPC:
