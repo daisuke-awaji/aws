@@ -11,4 +11,4 @@ script:
       --template-file=./cloudformation/template.yaml
       --stack-name dev
       --parameter-overrides Environment=dev
-      --region us-ease-1
+      --region us-east-1
