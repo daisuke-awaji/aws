@@ -3,6 +3,8 @@ language: bash
 before_install:
   - pip install --user awscli
   - export PATH=$PATH:$HOME/.local/bin
+  - pwd
+  - ls
   - cp .aws/config ~/.aws/config
 
 script:
