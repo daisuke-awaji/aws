@@ -21,14 +21,16 @@ before_install:
 
 script:
   # Master branch was pushed or marged by feature branches
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  - |
+    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       export ENV=dev;
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
-      aws cloudformation deploy
-          --template-file=./cloudformation/template.yaml
-          --stack-name ${ENV}
-          --parameter-overrides Environment=${ENV}
+
+      aws cloudformation deploy \
+          --template-file=./cloudformation/template.yaml \
+          --stack-name ${ENV} \
+          --parameter-overrides Environment=${ENV} \
           --region ${AWS_REGION};
     fi
 
