@@ -3,12 +3,16 @@ python:
   - "3.5"
 cache: pip
 
+env:
+  global:
+    - ENV=dev
+
 before_install:
   - pip install awscli
 
 script:
   - aws cloudformation deploy
       --template-file=./cloudformation/template.yaml
-      --stack-name dev
-      --parameter-overrides Environment=dev
-      --region us-east-1
+      --stack-name ${ENV}
+      --parameter-overrides Environment=${ENV}
+      --region ${AWS_REGION}
