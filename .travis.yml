@@ -15,12 +15,18 @@ before_install:
   - pip install awscli
 
 script:
-  # Master branch was pushed or marged by feature branches
+  #  __  __    _    ____   ____ _____ ____
+  # |  \/  |  / \  |  _ \ / ___| ____|  _ \
+  # | |\/| | / _ \ | |_) | |  _|  _| | | | |
+  # | |  | |/ ___ \|  _ <| |_| | |___| |_| |
+  # |_|  |_/_/   \_\_| \_\\____|_____|____/
+
+  # Master branch was pushed or marged by develop branches
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       figlet Master Branch Deploy;
 
-      export ENV=dev;
+      export ENV=prod;
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
@@ -31,12 +37,34 @@ script:
           --region ${AWS_REGION};
     fi
 
-  # Pull Requests was created for feature to master
+  # Develop branch was pushed or marged by feature branches
   - |
-    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      figlet Pull Request Build;
+    if [ "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      figlet Develop Branch Deploy;
 
       export ENV=dev;
+      echo "[INFO] Develop branch was pushed or marged by feature branches";
+      echo "[BUILD] Deploy Stack...";
+
+      aws cloudformation deploy \
+          --template-file=./cloudformation/template.yaml \
+          --stack-name ${ENV} \
+          --parameter-overrides Environment=${ENV} \
+          --region ${AWS_REGION};
+    fi
+
+  #  ____  _   _ _     _       ____  _____ ___  _   _ _____ ____ _____ ____
+  # |  _ \| | | | |   | |     |  _ \| ____/ _ \| | | | ____/ ___|_   _/ ___|
+  # | |_) | | | | |   | |     | |_) |  _|| | | | | | |  _| \___ \ | | \___ \
+  # |  __/| |_| | |___| |___  |  _ <| |__| |_| | |_| | |___ ___) || |  ___) |
+  # |_|    \___/|_____|_____| |_| \_\_____\__\_\\___/|_____|____/ |_| |____/
+
+  # Pull Requests was created for develop to master
+  - |
+    if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      figlet Master Pull Request Build;
+
+      export ENV=prod;
       echo "[INFO] Pull Request was created";
       echo "[BUILD] Create Stack...";
       DATE=$(date +"%Y%m%d%H%M%S");
@@ -48,6 +76,32 @@ script:
           --parameters ParameterKey=Environment,ParameterValue=${ENV} \
           --region ${AWS_REGION};
     fi
+
+  # Pull Requests was created for feature to develop
+  - |
+    if [ "$TRAVIS_BRANCH" == "develop" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      figlet Develop Pull Request Build;
+
+      export ENV=dev;
+
+      echo "[INFO] Pull Request was created";
+      echo "[BUILD] Create Stack...";
+      DATE=$(date +"%Y%m%d%H%M%S");
+
+      aws cloudformation create-change-set \
+          --template-body file://cloudformation/template.yaml \
+          --change-set-name "change-set-${DATE}" \
+          --stack-name ${ENV} \
+          --parameters ParameterKey=Environment,ParameterValue=${ENV} \
+          --region ${AWS_REGION};
+    fi
+
+
+  #   ___  _   _ _  __   __  ____  _   _ ____  _   _ _____ ____
+  #  / _ \| \ | | | \ \ / / |  _ \| | | / ___|| | | | ____|  _ \
+  # | | | |  \| | |  \ V /  | |_) | | | \___ \| |_| |  _| | | | |
+  # | |_| | |\  | |___| |   |  __/| |_| |___) |  _  | |___| |_| |
+  #  \___/|_| \_|_____|_|   |_|    \___/|____/|_| |_|_____|____/
 
   # Feature branch was pushed
   - |
