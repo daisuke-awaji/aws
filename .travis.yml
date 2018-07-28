@@ -33,5 +33,5 @@ script:
         --template-file=./cloudformation/template.yaml
         --stack-name ${ENV}
         --parameter-overrides Environment=${ENV}
-        --region ${AWS_REGION}
+        --region ${AWS_REGION};
     fi
