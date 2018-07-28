@@ -4,10 +4,6 @@ python:
 cache: pip
 
 before_script:
-  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Master branch marged by feature branch"'
-  - '[ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ] || echo "PR for master branch"'
-  - '[ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ] || echo "Pushed feature branch and not yet create PullRequest"'
-
   - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
   - echo TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
   - echo TRAVIS_TAG=${TRAVIS_TAG}
@@ -22,8 +18,9 @@ script:
   # Master branch was pushed or marged by feature branches
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      figlet Master Branch Deploy;
+
       export ENV=dev;
-      figlet Master Branch;
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
@@ -37,8 +34,9 @@ script:
   # Pull Requests was created for feature to master
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      figlet Pull Requess Build;
+
       export ENV=dev;
-      figlet Pull Request;
       echo "[INFO] Pull Request was created";
       echo "[BUILD] Create Stack...";
       DATE=$(date +"%Y%m%d%H%M%S");
@@ -52,8 +50,9 @@ script:
     fi
 
   # Feature branch was pushed
-  - if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-      figlet Nothing to do
+  - |
+    if [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      figlet Nothing to do;
       echo "[INFO] Feature branch was pushed";
       echo "[INFO] Nothing to do anything";
     fi
