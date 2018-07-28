@@ -16,17 +16,14 @@ before_script:
 
 before_install:
   - pip install awscli
+  - yum --enablerepo=epel -y install figlet
 
 script:
   # Master branch was pushed or marged by feature branches
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       export ENV=dev;
-      echo " __  __           _              _                          _
-            |  \/  | __ _ ___| |_ ___ _ __  | |__  _ __ __ _ _ __   ___| |__
-            | |\/| |/ _` / __| __/ _ \ '__| | '_ \| '__/ _` | '_ \ / __| '_ \
-            | |  | | (_| \__ \ ||  __/ |    | |_) | | | (_| | | | | (__| | | |
-            |_|  |_|\__,_|___/\__\___|_|    |_.__/|_|  \__,_|_| |_|\___|_| |_|";
+      figlet Master Branch;
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
@@ -41,13 +38,14 @@ script:
   - |
     if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export ENV=dev;
+      figlet Pull Request;
       echo "[INFO] Pull Request was created";
       echo "[BUILD] Create Stack...";
       DATE=$(date +"%Y%m%d%H%M%S");
 
       aws cloudformation create-change-set \
           --template-body file://cloudformation/template.yaml \
-          --change-set-name ${DATE} \
+          --change-set-name "change-set-${DATE}" \
           --stack-name ${ENV} \
           --parameters ParameterKey=Environment,ParameterValue=${ENV} \
           --region ${AWS_REGION};
