@@ -49,7 +49,7 @@ script:
           --template-body file://cloudformation/template.yaml \
           --change-set-name ${DATE} \
           --stack-name ${ENV} \
-          --parameters ParameterKey=Environment,ParameterValue=${ENV}
+          --parameters ParameterKey=Environment,ParameterValue=${ENV} \
           --region ${AWS_REGION};
     fi
 
