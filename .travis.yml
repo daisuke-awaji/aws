@@ -3,7 +3,7 @@ language: bash
 before_install:
   - pip install --user awscli
   - export PATH=$PATH:$HOME/.local/bin
-  - cp ./aws/config ~/.aws/config
+  - cp .aws/config ~/.aws/config
 
 script:
   - aws cloudformation deploy
