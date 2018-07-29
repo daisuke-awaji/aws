@@ -11,12 +11,17 @@ before_script:
   - echo MTB_MERGE_MASTER=${MTB_MERGE_MASTER}
 
 before_install:
+  # figlet
   - sudo apt-get install -y figlet
+  # awscli
   - pip install awscli
-  - mkdir -p $(go env GOPATH)/src/github.com/hashicorp && cd $_
-  - git clone https://github.com/hashicorp/packer.git
-  - cd packer
-  - make dev
+  # packer  
+  - sudo apt-get install -y unzip
+  - curl -L -o packer.zip https://releases.hashicorp.com/packer/1.0.0/packer_1.0.0_linux_amd64.zip
+  - unzip packer.zip
+  - rm packer.zip
+  - sudo mv packer /usr/local/bin
+  - packer version
 
 script:
   #  __  __    _    ____   ____ _____ ____
