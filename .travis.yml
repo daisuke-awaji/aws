@@ -62,6 +62,9 @@ script:
       export ENV=dev;
       echo "[INFO] Develop branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
+      pwd;
+      ls;
+      cd ${HOME};
 
       AMIID=`packer build -machine-readable ./packer/template.json \
         | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
