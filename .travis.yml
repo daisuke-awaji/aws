@@ -21,7 +21,7 @@ before_install:
   - sudo unzip -u packer.zip
   - rm packer.zip
   - ls
-  - sudo mv -rf packer /usr/local/bin
+  - sudo mv -f packer /usr/local/bin
 
 script:
   #  __  __    _    ____   ____ _____ ____
