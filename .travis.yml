@@ -30,10 +30,14 @@ script:
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
+      AMIID=`packer build -machine-readable ./packer/template.json \
+        | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
+        | cut -d : -f 2`
+
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} \
+          --parameter-overrides Environment=${ENV} WebInstanceAMI=${AMIID} \
           --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
@@ -47,10 +51,14 @@ script:
       echo "[INFO] Develop branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
+      AMIID=`packer build -machine-readable ./packer/template.json \
+        | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
+        | cut -d : -f 2`
+
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} \
+          --parameter-overrides Environment=${ENV} WebInstanceAMI=${AMIID} \
           --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi

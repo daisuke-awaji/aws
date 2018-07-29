@@ -1,0 +1,33 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_KEY`}}"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "subnet_id": "subnet-f0d36dac",
+    "source_ami": "ami-b70554c8",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ami_name": "web {{timestamp}}",
+    "tags": {
+      "Name": "web-{{timestamp}}",
+      "OS_Version": "AmazonLinux2",
+      "Timestamp": "{{timestamp}}",
+      "Base_AMI_Name": "{{ .SourceAMIName }}",
+      "Extra": "{{ .SourceAMITags.TagName }}"
+    }
+  }],
+  "provisioners": [{
+   "type": "shell",
+   "inline": [
+     "sudo yum -y update",
+     "sudo yum -y install httpd",
+     "sudo systemctl start httpd",
+     "sudo systemctl enable httpd"
+   ]
+ }]
+}
