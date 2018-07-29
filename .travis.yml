@@ -13,6 +13,10 @@ before_script:
 before_install:
   - sudo apt-get install -y figlet
   - pip install awscli
+  - mkdir -p $(go env GOPATH)/src/github.com/hashicorp && cd $_
+  - git clone https://github.com/hashicorp/packer.git
+  - cd packer
+  - make dev
 
 script:
   #  __  __    _    ____   ____ _____ ____
