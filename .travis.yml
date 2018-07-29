@@ -25,6 +25,10 @@ before_install:
   - export PATH="$PATH:/usr/local/packer"
   - packer --version
   - cd /home/travis/build/daisuke-awaji/aws/
+  - tee --version
+  - tail --version
+  - awk --version
+  - head --version
 
 script:
   #  __  __    _    ____   ____ _____ ____
