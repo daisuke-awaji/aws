@@ -42,10 +42,7 @@ script:
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
-      export AMIID=`packer build -machine-readable ./packer/template.json \
-        | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
-        | cut -d : -f 2`;
-
+      AMIID=`packer build ./packer/template.json | tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`
       echo ${AMIID};
 
       aws cloudformation deploy \
@@ -66,10 +63,7 @@ script:
       echo "[INFO] Develop branch was pushed or marged by feature branches";
       echo "[BUILD] Packer build. Create AMI.";
 
-      export AMIID=`packer build -machine-readable ./packer/template.json \
-        | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
-        | cut -d : -f 2`;
-
+      AMIID=`packer build ./packer/template.json | tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`
       echo ${AMIID};
 
       echo "[BUILD] Deploy Stack...";
