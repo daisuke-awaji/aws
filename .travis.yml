@@ -24,6 +24,7 @@ before_install:
   - sudo mv packer /usr/local/
   - export PATH="$PATH:/usr/local/packer"
   - packer --version
+  - cd
 
 script:
   #  __  __    _    ____   ____ _____ ____
