@@ -1,7 +1,7 @@
 language: python
-python:
-  - "3.5"
-cache: pip
+# python:
+#   - "3.5"
+# cache: pip
 
 before_script:
   - echo TRAVIS_BRANCH=${TRAVIS_BRANCH}
@@ -12,15 +12,16 @@ before_script:
 
 before_install:
   # figlet
-  - sudo apt-get install -y figlet
+  # - sudo apt-get install -y figlet
   # awscli
-  - pip install awscli
+  # - pip install awscli
   # packer
   - sudo apt-get install -y unzip
   - curl -L -o packer.zip https://releases.hashicorp.com/packer/1.0.0/packer_1.0.0_linux_amd64.zip
   - sudo unzip -u packer.zip
   - rm packer.zip
-  - sudo mv packer /usr/local/bin
+  - ls
+  - sudo mv -rf packer /usr/local/bin
 
 script:
   #  __  __    _    ____   ____ _____ ____
