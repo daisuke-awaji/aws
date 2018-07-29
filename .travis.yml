@@ -49,7 +49,8 @@ script:
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} WebInstanceAMI=${AMIID} \
+          --parameter-overrides Environment=${ENV} \
+          --parameter-overrides WebInstanceAMI=${AMIID} \
           --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
@@ -70,7 +71,8 @@ script:
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
           --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} WebInstanceAMI=${AMIID} \
+          --parameter-overrides Environment=${ENV} \
+          --parameter-overrides WebInstanceAMI=${AMIID} \
           --capabilities CAPABILITY_IAM \
           --region ${AWS_REGION};
     fi
