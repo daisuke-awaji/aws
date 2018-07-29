@@ -44,7 +44,7 @@ script:
 
       AMIID=`packer build -machine-readable ./packer/template.json \
         | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
-        | cut -d : -f 2`
+        | cut -d : -f 2`;
 
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
@@ -65,7 +65,7 @@ script:
 
       AMIID=`packer build -machine-readable ./packer/template.json \
         | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
-        | cut -d : -f 2`
+        | cut -d : -f 2`;
 
       aws cloudformation deploy \
           --template-file=./cloudformation/template.yaml \
