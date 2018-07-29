@@ -20,6 +20,7 @@ before_install:
   - curl -L -o packer.zip https://releases.hashicorp.com/packer/1.0.0/packer_1.0.0_linux_amd64.zip
   - sudo unzip -u packer.zip
   - rm packer.zip
+  - sudo mkdir /usr/local/
   - sudo mv packer /usr/local/
   - export PATH="$PATH:/usr/local/packer"
   - packer --version
