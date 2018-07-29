@@ -24,7 +24,7 @@ before_install:
   - sudo mv packer /usr/local/
   - export PATH="$PATH:/usr/local/packer"
   - packer --version
-  - cd ${HOME}
+  - pwd
 
 script:
   #  __  __    _    ____   ____ _____ ____
@@ -64,7 +64,7 @@ script:
       echo "[BUILD] Deploy Stack...";
       pwd;
       ls;
-      cd ${HOME};
+      cd ..;
 
       AMIID=`packer build -machine-readable ./packer/template.json \
         | awk -F , '$3 ~ /^artifact$/ && $5 ~ /^id$/ { print $6 };' \
