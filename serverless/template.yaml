@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  MyFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: stack_delete_bot
+      Handler: ./src/stack_delete_bot.lambda_handler
+      Runtime: python3.6
+      Timeout: 180
+      Events:
+        Day:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 22 * * ? *)

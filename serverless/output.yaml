@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyFunction:
+    Properties:
+      CodeUri: s3://api-backend-test-bucket/6d00ed327142db7fbec5708cecb938d6
+      Events:
+        Day:
+          Properties:
+            Schedule: cron(0 22 * * ? *)
+          Type: Schedule
+      FunctionName: stack_delete_bot
+      Handler: ./src/stack_delete_bot.lambda_handler
+      Runtime: python3.6
+      Timeout: 180
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
