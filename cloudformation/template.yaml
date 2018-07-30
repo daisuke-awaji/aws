@@ -23,6 +23,7 @@ Conditions:
 
 Mappings:
   StackConfig:
+    # Default Instance Amazon Linux
     EC2:
       ImageId: ami-b70554c8
     KeyPair:
@@ -289,13 +290,13 @@ Resources:
       ToPort: -1
       SourceSecurityGroupId: !Ref PrivateSecurityGroup
 
-  #      _ _   _ __  __ ____    _   _  ___  ____ _____
-  #     | | | | |  \/  |  _ \  | | | |/ _ \/ ___|_   _|
-  #  _  | | | | | |\/| | |_) | | |_| | | | \___ \ | |
-  # | |_| | |_| | |  | |  __/  |  _  | |_| |___) || |
-  #  \___/ \___/|_|  |_|_|     |_| |_|\___/|____/ |_|
+  #  ____    _    ____ _____ ___ ___  _   _   _   _  ___  ____ _____
+  # | __ )  / \  / ___|_   _|_ _/ _ \| \ | | | | | |/ _ \/ ___|_   _|
+  # |  _ \ / _ \ \___ \ | |  | | | | |  \| | | |_| | | | \___ \ | |
+  # | |_) / ___ \ ___) || |  | | |_| | |\  | |  _  | |_| |___) || |
+  # |____/_/   \_\____/ |_| |___\___/|_| \_| |_| |_|\___/|____/ |_|
 
-  JumpHostInstance:
+  BastionHostInstance:
     Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: !FindInMap [ StackConfig, EC2, ImageId ]
@@ -309,7 +310,7 @@ Resources:
           SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
-          Value: !Sub ${Environment}-jump-host
+          Value: !Sub ${Environment}-bastion-host
 
   #     _   _   _ _____ ___    ____   ____    _    _     ___ _   _  ____
   #    / \ | | | |_   _/ _ \  / ___| / ___|  / \  | |   |_ _| \ | |/ ___|
@@ -322,7 +323,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT10M
+        Timeout: PT15M
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: true
@@ -348,6 +349,9 @@ Resources:
         - !Ref PrivateSecurityGroup
       InstanceType: t2.micro
       KeyName: !FindInMap [ StackConfig, KeyPair, KeyPairName ]
+      # Prodcution環境ではオンデマンドインスタンスを採用する
+      # それ以外の環境ではスポットインスタンスを使用する
+      SpotPrice: !If [ CreateProdResources, !Ref "AWS::NoValue", 0.06 ]
       # AutoScalingGroupにシグナルを送信することでEC2の作成が完了したことを通知する
       UserData:
         "Fn::Base64":
@@ -445,7 +449,7 @@ Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: alb
+      Name: !Sub ${Environment}-web-alb
       Subnets:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2

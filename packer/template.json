@@ -8,7 +8,6 @@
     "access_key": "{{user `aws_access_key`}}",
     "secret_key": "{{user `aws_secret_key`}}",
     "region": "us-east-1",
-    "subnet_id": "subnet-f0d36dac",
     "source_ami": "ami-b70554c8",
     "instance_type": "t2.micro",
     "ssh_username": "ec2-user",
