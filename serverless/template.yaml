@@ -2,11 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-  MyFunction:
+  StackDelete:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: stack_delete_bot
-      Handler: ./src/stack_delete_bot.lambda_handler
+      Handler: stack_delete_bot.lambda_handler
+      Role: !Ref StackDeleteNoticeIAMRole
       Runtime: python3.6
       Timeout: 180
       Events:
@@ -14,3 +15,29 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 22 * * ? *)
+
+  StackDeleteNoticeIAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: stack-delete-notice-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: stack-delete-notice-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "cloudformation:*"
+                Resource: "*"
+                
