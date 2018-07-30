@@ -1,8 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: AllAtOnce
 Resources:
   StackDelete:
     Properties:
-      CodeUri: s3://api-backend-test-bucket/c3b57938d280d45b337d1dd107764bce
+      CodeUri: s3://api-backend-test-bucket/5458892d38c2510b7bd987b8592f722f
       Events:
         Day:
           Properties:

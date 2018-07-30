@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Globals:
+  Function:
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: AllAtOnce
+      
 Resources:
   StackDelete:
     Type: 'AWS::Serverless::Function'
@@ -40,4 +46,3 @@ Resources:
                 Effect: "Allow"
                 Action: "cloudformation:*"
                 Resource: "*"
-                
