@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    apps
+
+    Sample SAM Template for apps
+
+Parameters:
+  Environment:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: AllAtOnce
+
+Resources:
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: !Sub ${Environment}-hello-world
+      CodeUri: hello_world
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+            PARAM1: VALUE
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /hello
+            Method: get
+
+  StackDelete:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub ${Environment}-stack_delete_bot
+      CodeUri: notice_remaining_stacks_bot
+      Handler: stack_delete_bot.lambda_handler
+      Role: !GetAtt StackDeleteNoticeIAMRole.Arn
+      Runtime: python3.6
+      Timeout: 180
+      Events:
+        Day:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 22 * * ? *)
+
+  StackDeleteNoticeIAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${Environment}-stack-delete-notice-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: !Sub ${Environment}-stack-delete-notice-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "cloudformation:*"
+                Resource: "*"
+
+
+
+Outputs:
+
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn

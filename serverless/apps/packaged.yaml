@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'apps
+
+  Sample SAM Template for apps
+
+  '
+Globals:
+  Function:
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: AllAtOnce
+    Timeout: 30
+Outputs:
+  HelloWorldApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunction
+      - Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunctionRole
+      - Arn
+Parameters:
+  Environment:
+    AllowedValues:
+    - dev
+    - prod
+    Default: dev
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+Resources:
+  HelloWorldFunction:
+    Properties:
+      CodeUri: s3://api-backend-test-bucket/0b94828870e2b057a45bd87afa253cf2
+      Environment:
+        Variables:
+          PARAM1: VALUE
+      Events:
+        HelloWorld:
+          Properties:
+            Method: get
+            Path: /hello
+          Type: Api
+      FunctionName:
+        Fn::Sub: ${Environment}-hello-world
+      Handler: app.lambda_handler
+      Runtime: python3.6
+    Type: AWS::Serverless::Function
+  StackDelete:
+    Properties:
+      CodeUri: s3://api-backend-test-bucket/13ddb37a2e76cbbed4e67dd16b1c5888
+      Events:
+        Day:
+          Properties:
+            Schedule: cron(0 22 * * ? *)
+          Type: Schedule
+      FunctionName:
+        Fn::Sub: ${Environment}-stack_delete_bot
+      Handler: stack_delete_bot.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - StackDeleteNoticeIAMRole
+        - Arn
+      Runtime: python3.6
+      Timeout: 180
+    Type: AWS::Serverless::Function
+  StackDeleteNoticeIAMRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: cloudformation:*
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName:
+          Fn::Sub: ${Environment}-stack-delete-notice-policy
+      RoleName:
+        Fn::Sub: ${Environment}-stack-delete-notice-role
+    Type: AWS::IAM::Role
+Transform: AWS::Serverless-2016-10-31
