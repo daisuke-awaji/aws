@@ -25,10 +25,15 @@ before_install:
   - export PATH="$PATH:/usr/local/packer"
   - packer --version
   - cd /home/travis/build/daisuke-awaji/aws/
-  - tee --version
-  - tail --version
-  - awk --version
-  - head --version
+  - aws-cloudformation-deploy() {
+      aws cloudformation deploy \
+          --template-file=./cloudformation/template.yaml \
+          --stack-name ${ENV} \
+          --parameter-overrides Environment=${ENV} \
+          --parameter-overrides WebInstanceAMI=${AMIID} \
+          --capabilities CAPABILITY_IAM \
+          --region ${AWS_REGION};
+    }
 
 script:
   #  __  __    _    ____   ____ _____ ____
@@ -49,13 +54,7 @@ script:
       AMIID=`packer build ./packer/template.json | tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`;
       echo ${AMIID};
 
-      aws cloudformation deploy \
-          --template-file=./cloudformation/template.yaml \
-          --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} \
-          --parameter-overrides WebInstanceAMI=${AMIID} \
-          --capabilities CAPABILITY_IAM \
-          --region ${AWS_REGION};
+      aws-cloudformation-deploy;
     fi
 
   # Develop branch was pushed or marged by feature branches
@@ -68,20 +67,12 @@ script:
       echo "[BUILD] Packer build. Create AMI.";
 
       packer build ./packer/template.json >> out.log;
-
       cat out.log;
-
-      AMIID=`packer build ./packer/template.json | tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`;
+      AMIID=`tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`;
       echo ${AMIID};
 
       echo "[BUILD] Deploy Stack...";
-      aws cloudformation deploy \
-          --template-file=./cloudformation/template.yaml \
-          --stack-name ${ENV} \
-          --parameter-overrides Environment=${ENV} \
-          --parameter-overrides WebInstanceAMI=${AMIID} \
-          --capabilities CAPABILITY_IAM \
-          --region ${AWS_REGION};
+      aws-cloudformation-deploy;
     fi
 
   #  ____  _   _ _     _       ____  _____ ___  _   _ _____ ____ _____ ____
