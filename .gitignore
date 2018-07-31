@@ -1,4 +1,6 @@
 serverless/env/*
 serverless/.idea/*
 serverless/output.yaml
-
+serverless/.pytest_cache/*
+serverless/tests/unit/__pycache__/*
+serverless/*/__pycache__/*

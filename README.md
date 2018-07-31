@@ -6,7 +6,7 @@ Automatically build Rails application on AWS.
 Packer creates AMI (Amazon Machine Image) after installing the middleware described by Ansible's Playbook.
 The created AMI is handed over to Cloudformation parameters and deployed to the new environment.The series of processing is done automatically by Travis CI.
 
-![デプロイの流れ](draw.io/flow.png)
+![deploy-flow](draw.io/flow.png)
 
 ## Target Branches
 
