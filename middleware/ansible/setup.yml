@@ -1,9 +1,9 @@
 - hosts: all
   sudo: yes
   tasks:
-   - name: install Apache24
+   - name: install Apache
      yum: pkg={{item}} state=installed
      with_items:
-      - httpd24
+      - httpd
    - name: enable httpd service
      service: name=httpd enabled=yes
