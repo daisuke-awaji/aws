@@ -6,14 +6,14 @@ Globals:
     AutoPublishAlias: live
     DeploymentPreference:
       Type: AllAtOnce
-      
+
 Resources:
   StackDelete:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: stack_delete_bot
       Handler: stack_delete_bot.lambda_handler
-      Role: !Ref StackDeleteNoticeIAMRole
+      Role: !GetAtt StackDeleteNoticeIAMRole.Arn
       Runtime: python3.6
       Timeout: 180
       Events:

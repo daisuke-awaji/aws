@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     num_of_stacks = len(stacks)
 
     # 除外するスタック
-    exclude_stacks = ["arn:aws:cloudformation:us-east-1:703976800898:stack/delete-stack-bot/d40ed7d0-9405-11e8-b6f6-50fae98974c5"]
+    exclude_stacks = ["arn:aws:cloudformation:us-east-1:703976800898:stack/delete-stack-bot/ff5192c0-940a-11e8-ae7b-503acac41e99"]
     for stack in stacks:
         print(stack["StackId"])
         if stack["StackId"] in exclude_stacks:

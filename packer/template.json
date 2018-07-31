@@ -23,10 +23,10 @@
   "provisioners": [{
    "type": "shell",
    "inline": [
-     "sudo yum -y update",
+     /* "sudo yum -y update",
      "sudo yum -y install httpd",
      "sudo systemctl start httpd",
-     "sudo systemctl enable httpd"
+     "sudo systemctl enable httpd" */
    ]
  }]
 }
