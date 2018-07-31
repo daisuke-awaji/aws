@@ -1,6 +1,6 @@
-# apps
+# serverless-apps
 
-This is a sample template for apps - Below is a brief explanation of what we have generated for you:
+This is a sample template for serverless-apps - Below is a brief explanation of what we have generated for you:
 
 ```bash
 .
@@ -94,7 +94,7 @@ Next, the following command will create a Cloudformation Stack and deploy your S
 ```bash
 sam deploy \
     --template-file packaged.yaml \
-    --stack-name apps \
+    --stack-name serverless-apps \
     --capabilities CAPABILITY_IAM
 ```
 
@@ -104,7 +104,7 @@ After deployment is complete you can run the following command to retrieve the A
 
 ```bash
 aws cloudformation describe-stacks \
-    --stack-name apps \
+    --stack-name serverless-apps \
     --query 'Stacks[].Outputs'
 ```
 
@@ -148,12 +148,12 @@ sam package \
 
 sam deploy \
     --template-file packaged.yaml \
-    --stack-name apps \
+    --stack-name serverless-apps \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides MyParameterSample=MySampleValue
 
 aws cloudformation describe-stacks \
-    --stack-name apps --query 'Stacks[].Outputs'
+    --stack-name serverless-apps --query 'Stacks[].Outputs'
 ```
 
 ## Bringing to the next level

@@ -1,1 +1,1 @@
-# draw.ioで作成した構成図
+# Configuration diagram created by draw.io

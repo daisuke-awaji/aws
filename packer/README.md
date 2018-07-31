@@ -1,3 +1,3 @@
-# Packerを使用したAMIのビルド
+# Building AMI with Packer
 
-PackerによるAMIの作成時に一時的に作成されるEC2インスタンスはAWSのデフォルトVPC上で実行されます。
+EC2 instance created temporarily when creating an AMI by Packer runs on the AWS default VPC.

@@ -42,7 +42,9 @@ script:
       echo "[INFO] Master branch was pushed or marged by feature branches";
       echo "[BUILD] Deploy Stack...";
 
-      AMIID=`packer build ./packer/template.json | tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`;
+      packer build ./packer/template.json >> out.log;
+      cat out.log;
+      AMIID=`tee output.log | tail -2 | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }'`;
       echo ${AMIID};
 
       echo "[BUILD] Deploy Stack...";

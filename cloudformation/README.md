@@ -1,1 +1,1 @@
-# CloudformationによるAWSリソースの構築
+# Construction of AWS resources by Cloudformation

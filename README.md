@@ -1,32 +1,30 @@
-# AWS環境にRails環境を自動構築するためのフレームワーク
+# Continuous Integration Flamework
 
-RailsのアプリケーションをAWS上に自動構築します。
-PackerはAnsibleのPlaybookによって記述されたミドルウェアをインストールした後、AMI(Amazon Machine Image)を作成します。
-作成されたAMIはCloudformationのパラメータに引き渡され、新しい環境にデプロイが行われます。
+**Automatically Build: Rails apps on AWS used by Packer, Ansible and Cloudformation**
 
-一連の処理はTravis CIによって自動的に行われます。
-
-- developブランチ：dev環境にデプロイ
-- masterブランチ：prod環境にデプロイ
-
-まずはdevelopブランチ上で作業を行い、dev環境上でCloudformationおよびAnsibleの動作が問題ないことを確認しましょう。developブランチをGithubにPUSHすると環境構築が自動的に行われます。
-
-問題がなければmasterにマージすればprod環境にデプロイが行われます。
+Automatically build Rails application on AWS.
+Packer creates AMI (Amazon Machine Image) after installing the middleware described by Ansible's Playbook.
+The created AMI is handed over to Cloudformation parameters and deployed to the new environment.The series of processing is done automatically by Travis CI.
 
 ![デプロイの流れ](draw.io/flow.png)
 
-## 使用する技術スタック
-- Rails
-- Travis CI
-- Packer
-- Ansible
-- Cloudformation
+## Target Branches
 
-## 注意事項
+It triggers that the source code is pushed to the following branch.
 
-- SpotInstanceを利用しているため、CloudformationによるAWSリソースの構築の際、まれにEC2インスタンスが確保できずタイムアウトになる可能性があります。まずはVPC, Subnetだけ構築してからAutoScalingグループを構築すると良いかもしれません。お金に余裕がある人は以下の行を削除しましょう。確実にインスタンスを作成することができます。
+- develop: deploy in "dev" environment
+- master: deploy to "prod" environment
+
+## Usage
+
+First of all, work on the develop branch and make sure that the behavior of Cloudformation and Ansible is OK on the dev environment. Pushing the develop branch to Github will automatically create the environment.
+
+If there is no problem, if you merge it into master, it will be deployed to the prod environment.
+
+## Notes
+
+- Because we are using SpotInstance, when constructing AWS resources by Cloudformation, in rare cases EC2 instance can not be secured and there is a possibility of timeout. First of all, it may be better to build the AutoScaling group after building only VPC, Subnet. People who can afford the money delete the following lines. You can create instances reliably.
 ```diff
- # Prodcution環境ではオンデマンドインスタンスを採用する
- # それ以外の環境ではスポットインスタンスを使用する
+ # Use on-demand/spot instance in prod/dev.
 +# SpotPrice: !If [ CreateProdResources, !Ref "AWS::NoValue", 0.06 ]
 ```
