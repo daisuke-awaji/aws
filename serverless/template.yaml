@@ -41,12 +41,12 @@ Resources:
             Path: /hello
             Method: get
 
-  StackDelete:
+  NoticeRemainingStackBot:
     Type: 'AWS::Serverless::Function'
     Properties:
-      FunctionName: !Sub ${Environment}-stack_delete_bot
+      FunctionName: !Sub ${Environment}-notice-remaining-stack-bot
       CodeUri: notice_remaining_stacks_bot
-      Handler: stack_delete_bot.lambda_handler
+      Handler: notice_remaining_stacks_bot.lambda_handler
       Role: !GetAtt StackDeleteNoticeIAMRole.Arn
       Runtime: python3.6
       Timeout: 180
@@ -80,7 +80,6 @@ Resources:
                 Effect: "Allow"
                 Action: "cloudformation:*"
                 Resource: "*"
-
 
 
 Outputs:
