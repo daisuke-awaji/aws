@@ -19,12 +19,13 @@
     }
   }],
   "provisioners": [{
-   "type": "shell",
-   "inline": [
-     "sudo yum -y update",
-     "sudo yum -y install httpd",
-     "sudo systemctl start httpd",
-     "sudo systemctl enable httpd"
-   ]
- }]
+    "type": "shell",
+    "inline": [
+      "sudo easy_install pip",
+      "sudo pip install ansible"
+    ]
+   },{
+     "type": "ansible-local",
+     "playbook_file": "ansible/setup.yml"
+  }]
 }
