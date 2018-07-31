@@ -15,9 +15,7 @@
     "tags": {
       "Name": "web-{{timestamp}}",
       "OS_Version": "AmazonLinux2",
-      "Timestamp": "{{timestamp}}",
-      "Base_AMI_Name": "{{ .SourceAMIName }}",
-      "Extra": "{{ .SourceAMITags.TagName }}"
+      "Timestamp": "{{timestamp}}"
     }
   }],
   "provisioners": [{
